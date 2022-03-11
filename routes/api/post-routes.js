@@ -9,7 +9,17 @@ router.get('/', (req, res) => {
     console.log('================');
     Post.findAll({
         // Query configuration
-        attributes: ['id', 'post_url', 'title', 'created_at'],
+        attributes: [
+            'id',
+            'post_url',
+            'title',
+            'created_at',
+            // use raw MySOL aggregate funcion query to get a count of how many votes the post has and return it uder the name `vote_count`
+            [
+                sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 
+                'vote_count'
+            ]
+        ],
         order: [['created_at', 'DESC']],
         include: [
             {
@@ -29,7 +39,17 @@ router.get('/:id', (req, res) => {
         where: {
             id: req.params.id
         },
-        attributes: ['id', 'post_url', 'title', 'created_at'],
+        attributes: [
+            'id',
+            'post_url',
+            'title',
+            'created_at',
+            // use raw MySOL aggregate funcion query to get a count of how many votes the post has and return it uder the name `vote_count`
+            [
+                sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 
+                'vote_count'
+            ]
+        ],
         include: [
             {
                 model: User,
