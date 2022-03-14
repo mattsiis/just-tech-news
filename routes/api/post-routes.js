@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { Post, User, Vote } = require('../../models');
+const { Post, User, Vote, Comment } = require('../../models');
 
 const sequelize = require('../../config/connection');
 
@@ -7,13 +7,14 @@ const sequelize = require('../../config/connection');
 // get all users
 router.get('/', (req, res) => {
     console.log('================');
+    
     Post.findAll({
         // Query configuration
         attributes: [
             'id',
             'post_url',
             'title',
-            'created_at',
+            'createdAt',
             // use raw MySOL aggregate funcion query to get a count of how many votes the post has and return it uder the name `vote_count`
             [
                 sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 
@@ -22,6 +23,15 @@ router.get('/', (req, res) => {
         ],
         order: [['created_at', 'DESC']],
         include: [
+            // include the Comment model here:
+            {
+                model: Comment,
+                attributes: ['id', 'comment_text', 'post_id', 'user_id', 'createdAt'],
+                include: {
+                    model: User,
+                    attributes: ['username']
+                }
+            },
             {
                 model: User,
                 attributes: ['username']
@@ -51,6 +61,15 @@ router.get('/:id', (req, res) => {
             ]
         ],
         include: [
+             // include the Comment model here:
+             {
+                model: Comment,
+                attributes: ['id', 'comment_text', 'post_id', 'user_id', 'createdAt'],
+                include: {
+                    model: User,
+                    attributes: ['username']
+                }
+            },
             {
                 model: User,
                 attributes: ['username']
