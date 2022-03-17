@@ -45,7 +45,8 @@ router.get('/:id', (req, res) => {
             if (!dbUserData) {
                 res.status(404).json({ message: 'No user found with this id' });
                 return;
-            }
+            };
+            
             res.json(dbUserData);
         })
         .catch(err => {
@@ -60,9 +61,18 @@ router.post('/', (req, res) => {
         username: req.body.username,
         email: req.body.email,
         password: req.body.password
-    }
-    )
-        .then(dbUserData => res.json(dbUserData))
+    })
+        .then(dbUserData => {
+            console.log("dbUserData" + dbUserData.id)
+            console.log(req.session.save() )
+            req.session.save(() => {
+                req.session.user_id = dbUserData.id;
+                req.session.username = dbUserData.username;
+                req.session.loggedIn = true;
+
+                res.json(dbUserData);
+            })
+        })
         .catch(err => {
             console.log(err);
             res.status(500).json(err);
@@ -92,8 +102,28 @@ router.post('/login', (req, res) => {
             return;
         }
 
-        res.json({ user: dbUserData, message: 'You are now logged in!'});
+        
+        req.session.save(() => {
+            // declare session variables
+            req.session.user_id = dbUserData.id;
+            req.session.username = dbUserData.username;
+            req.session.loggedIn = true;
+            
+            res.json({ user: dbUserData, message: 'You are now logged in!'});
+        })
     })
+})
+
+// logout query
+router.post('/logout', (req, res) => {
+    if (req.session.loggedIn) {
+        req.session.destroy(() => {
+            res.status(204).end();
+        });
+    }
+    else {
+        res.status(404).end
+    }
 })
 
 
